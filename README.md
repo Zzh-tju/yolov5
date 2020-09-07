@@ -16,7 +16,7 @@ Torchvision NMS has the fastest speed but fails to run in batch mode.
 
 Batch mode Cluster-NMS is made for this.
 
-#### Our goal is that when using TTA for getting better performance, NMS no longer becomes a potential time-consuming growth factor.
+### Our goal is that when using TTA for getting better performance, NMS no longer becomes a potential time-consuming growth factor.
 
 ## Pretrained Weights
 

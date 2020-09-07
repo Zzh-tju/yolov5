@@ -41,7 +41,7 @@ $ pip install -r requirements.txt
 ## Evaluation for Batch Mode Weighted Cluster-NMS
 
 #### Hardware
- - 2 RTX 2080 Ti
+ - 1 RTX 2080 Ti
  
 Evaluation command: `python test.py --weights yolov5s.pt --data coco.yaml --img 640 --augment --merge --batch-size 32`
 

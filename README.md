@@ -1,23 +1,21 @@
+<img src="CIoU.png" width="800px"/>
+## Complete-IoU Loss and Cluster-NMS for Improving Object Detection and Instance Segmentation. 
+
 <a href="https://apps.apple.com/app/id1452689527" target="_blank">
 <img src="https://user-images.githubusercontent.com/26833433/82944393-f7644d80-9f4f-11ea-8b87-1a5b04f555f1.jpg" width="1000"></a>
 &nbsp
 
-![CI CPU testing](https://github.com/ultralytics/yolov5/workflows/CI%20CPU%20testing/badge.svg)
+### This repo only focuses on NMS speed improvement based on https://github.com/ultralytics/yolov5.
 
-This repository represents Ultralytics open-source research into future object detection methods, and incorporates our lessons learned and best practices evolved over training thousands of models on custom client datasets with our previous YOLO repository https://github.com/ultralytics/yolov3. **All code and models are under active development, and are subject to modification or deletion without notice.** Use at your own risk.
+### See `non_max_suppression` function of [utils/general.py](utils/general.py) for our Cluster-NMS implementation.
 
-<img src="https://user-images.githubusercontent.com/26833433/90187293-6773ba00-dd6e-11ea-8f90-cd94afc0427f.png" width="1000">** GPU Speed measures end-to-end time per image averaged over 5000 COCO val2017 images using a V100 GPU with batch size 32, and includes image preprocessing, PyTorch FP16 inference, postprocessing and NMS. EfficientDet data from [google/automl](https://github.com/google/automl) at batch size 8.
+# Batch mode Cluster-NMS
 
-- **August 13, 2020**: [v3.0 release](https://github.com/ultralytics/yolov5/releases/tag/v3.0): nn.Hardswish() activations, data autodownload, native AMP.
-- **July 23, 2020**: [v2.0 release](https://github.com/ultralytics/yolov5/releases/tag/v2.0): improved model definition, training and mAP.
-- **June 22, 2020**: [PANet](https://arxiv.org/abs/1803.01534) updates: new heads, reduced parameters, improved speed and mAP [364fcfd](https://github.com/ultralytics/yolov5/commit/364fcfd7dba53f46edd4f04c037a039c0a287972).
-- **June 19, 2020**: [FP16](https://pytorch.org/docs/stable/nn.html#torch.nn.Module.half) as new default for smaller checkpoints and faster inference [d4c6674](https://github.com/ultralytics/yolov5/commit/d4c6674c98e19df4c40e33a777610a18d1961145).
-- **June 9, 2020**: [CSP](https://github.com/WongKinYiu/CrossStagePartialNetworks) updates: improved speed, size, and accuracy (credit to @WongKinYiu for CSP).
-- **May 27, 2020**: Public release. YOLOv5 models are SOTA among all known YOLO implementations.
-- **April 1, 2020**: Start development of future compound-scaled [YOLOv3](https://github.com/ultralytics/yolov3)/[YOLOv4](https://github.com/AlexeyAB/darknet)-based PyTorch models.
+Torchvision NMS has the fastest speed but fails to run in batch mode. And DIoU-NMS cannot be used.
 
+Cluster-NMS is made for this.
 
-## Pretrained Checkpoints
+## Pretrained Weights
 
 | Model | AP<sup>val</sup> | AP<sup>test</sup> | AP<sub>50</sub> | Speed<sub>GPU</sub> | FPS<sub>GPU</sub> || params | FLOPS |
 |---------- |------ |------ |------ | -------- | ------| ------ |------  |  :------: |
@@ -43,19 +41,74 @@ Python 3.8 or later with all [requirements.txt](https://github.com/ultralytics/y
 $ pip install -r requirements.txt
 ```
 
+#### Hardware
+ - 2 RTX 2080 Ti
+ 
+Evaluation command: `python test.py --weights yolov5s.pt --data coco.yaml --img 640 --augment --merge --batch-size 32`
 
-## Tutorials
+YOLOv5s.pt
 
-* [Train Custom Data](https://github.com/ultralytics/yolov5/wiki/Train-Custom-Data)
-* [Multi-GPU Training](https://github.com/ultralytics/yolov5/issues/475)
-* [PyTorch Hub](https://github.com/ultralytics/yolov5/issues/36)
-* [ONNX and TorchScript Export](https://github.com/ultralytics/yolov5/issues/251)
+|   NMS  | TTA | max-box | weighted threshold |  time (ms) | AP | AP50 | AP75 | APs | APm | APl |
+|:------------------------------------:|:----:|:----:|:----:|:----:|
+
+|             Torchvision NMS            |  on  |   -  |  -   | 3.2 / 17.9 | 38.0 | 56.5 | 41.2 | 20.9 | 42.6 | 51.7 |
+|         Merge + Torchvision NMS        |  on  |   -  | 0.65 | 3.2 / 18.6 | 38.0 | 56.5 | 41.4 | 20.9 | 42.7 | 51.8 |
+|          Weighted Cluster-NMS          |  on  | 1000 | 0.8  | 3.2 / 6.6  | 38.0 | 55.7 | 41.6 | 20.5 | 42.8 | 51.9 |
+|          Weighted Cluster-NMS          |  on  | 1500 | 0.65 | 3.2 / 10.2 | 38.1 | 56.1 | 41.9 | 20.9 | 42.7 | 51.8 |
+|          Weighted Cluster-NMS          |  on  | 1500 | 0.8  | 3.2 / 10.2 | 38.3 | 56.2 | 41.8 | 21.1 | 43.0 | 52.0 |
+|          Weighted Cluster-NMS          |  on  | 2000 | 0.8  | 3.2 / 14.5 | 38.4 | 56.4 | 41.9 | 21.3 | 43.1 | 52.1 |
+|------------------------------------|
+|             Torchvision NMS            |  off |   -  |  -   | 1.5 / 5.4  | 36.9 | 56.2 | 40.0 | 21.0 | 42.1 | 47.4 |
+|         Merge + Torchvision NMS        |  off |   -  | 0.65 | 1.3 / 6.7  | 36.9 | 56.2 | 40.2 | 20.9 | 42.1 | 47.4 |
+|          Weighted Cluster-NMS          |  off | 1000 | 0.65 | 1.3 / 6.5  | 36.9 | 56.0 | 40.2 | 20.9 | 42.0 | 47.3 |
+|          Weighted Cluster-NMS          |  off | 1000 | 0.8  | 1.3 / 6.5  | 37.0 | 56.0 | 40.3 | 21.1 | 42.2 | 47.5 |
+|          Weighted Cluster-NMS          |  off | 1000 | 0.8  | 3.2 / 10.2 | 38.1 | 56.1 | 41.9 | 20.9 | 42.7 | 51.8 |
+|          Weighted Cluster-NMS          |  off | 2000 | 0.8  | 3.2 / 14.5 | 38.4 | 56.4 | 41.9 | 21.3 | 43.1 | 52.1 |
+
+YOLOv5m.pt
+
+|   NMS  | TTA | max-box | weighted threshold |  time (ms) | AP | AP50 | AP75 | APs | APm | APl |
+|:------------------------------------:|:----:|:----:|:----:|:----:|
+
+|             Torchvision NMS            |  on  |   -  |  -   | 6.4 / 10.4 | 45.1 | 63.2 | 49.0 | 27.0 | 50.2 | 60.5 |
+|         Merge + Torchvision NMS        |  on  |   -  | 0.65 | 6.4 / 11.5 | 45.0 | 63.2 | 49.0 | 26.9 | 50.2 | 60.3 |
+|          Weighted Cluster-NMS          |  on  | 1000 | 0.65 | 6.4 / 6.8  | 44.6 | 62.3 | 49.1 | 26.0 | 50.0 | 60.4 |
+|          Weighted Cluster-NMS          |  on  | 1500 | 0.65 | 6.4 / 9.8  | 44.9 | 62.9 | 49.4 | 26.6 | 50.2 | 60.4 |
+|          Weighted Cluster-NMS          |  on  | 1500 | 0.8  | 6.4 / 9.8  | 45.2 | 62.9 | 49.4 | 26.8 | 50.4 | 60.5 |
+|------------------------------------|
+|             Torchvision NMS            |  off |   -  |  -   | 2.7 / 4.5  | 44.3 | 63.2 | 48.2 | 27.4 | 50.0 | 56.4 |
+|         Merge + Torchvision NMS        |  off |   -  | 0.65 | 2.7 / 6.1  | 44.2 | 63.1 | 48.4 | 27.4 | 50.1 | 56.2 |
+|          Weighted Cluster-NMS          |  off | 1000 | 0.65 | 2.7 / 6.1  | 44.2 | 62.9 | 48.5 | 27.3 | 50.0 | 56.3 |
+|          Weighted Cluster-NMS          |  off | 1000 | 0.8  | 2.7 / 6.1  | 44.3 | 62.9 | 48.5 | 27.4 | 50.1 | 56.4 |
+
+YOLOv5x.pt `python test.py --weights yolov5s.pt --data coco.yaml --img 832 --augment --merge --batch-size 32`
+
+|   NMS  | TTA | max-box | weighted threshold |  time (ms) | AP | AP50 | AP75 | APs | APm | APl |
+|:------------------------------------:|:----:|:----:|:----:|:----:|
+
+|         Merge + Torchvision NMS        |  on  |   -  | 0.65 | 31.7 / 10.7 | 50.2 | 68.5 | 55.2 | 34.2 | 54.9 | 64.0 |
+|          Weighted Cluster-NMS          |  on  | 1500 | 0.8  | 31.8 / 9.9  | 50.3 | 68.0 | 55.4 | 33.9 | 55.1 | 64.6 |
+
+** AP reports on `coco 2017val`. 
+** `TTA` denotes Test-Time Augmentation.
+** `max-box` denotes maximum number of boxes processed in Batch Mode Cluster-NMS.
+** `weighted threshold` denotes the threshold used in weighted coordinates.
+** time reports model inference / NMS.
+** To avoid randomness, NMS runs three times here. see  [test.py](test.py)
+```
+# Run NMS
+t = time_synchronized()
+output = non_max_suppression(inf_out, conf_thres=conf_thres, iou_thres=iou_thres, max_box=max_box, merge=merge)
+output = non_max_suppression(inf_out, conf_thres=conf_thres, iou_thres=iou_thres, max_box=max_box, merge=merge)
+output = non_max_suppression(inf_out, conf_thres=conf_thres, iou_thres=iou_thres, max_box=max_box, merge=merge)
+t1 += time_synchronized() - t
+```
+## Related issues
+
 * [Test-Time Augmentation (TTA)](https://github.com/ultralytics/yolov5/issues/303)
 * [Model Ensembling](https://github.com/ultralytics/yolov5/issues/318)
-* [Model Pruning/Sparsity](https://github.com/ultralytics/yolov5/issues/304)
-* [Hyperparameter Evolution](https://github.com/ultralytics/yolov5/issues/607)
-* [TensorRT Deployment](https://github.com/wang-xinyu/tensorrtx)
-
+* [INCREASING NMS SPEED](https://github.com/ultralytics/yolov3/issues/679)
+* [TESTING/INFERENCE AUGMENTATION](https://github.com/ultralytics/yolov3/issues/931)
 
 ## Environments
 
@@ -67,47 +120,6 @@ YOLOv5 may be run in any of the following up-to-date verified environments (with
 - **Docker Image** https://hub.docker.com/r/ultralytics/yolov5. See [Docker Quickstart Guide](https://github.com/ultralytics/yolov5/wiki/Docker-Quickstart) ![Docker Pulls](https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker)
 
 
-## Inference
-
-Inference can be run on most common media formats. Model [checkpoints](https://drive.google.com/open?id=1Drs_Aiu7xx6S-ix95f9kNsA6ueKRpN2J) are downloaded automatically if available. Results are saved to `./inference/output`.
-```bash
-$ python detect.py --source 0  # webcam
-                            file.jpg  # image 
-                            file.mp4  # video
-                            path/  # directory
-                            path/*.jpg  # glob
-                            rtsp://170.93.143.139/rtplive/470011e600ef003a004ee33696235daa  # rtsp stream
-                            http://112.50.243.8/PLTV/88888888/224/3221225900/1.m3u8  # http stream
-```
-
-To run inference on examples in the `./inference/images` folder:
-
-```bash
-$ python detect.py --source ./inference/images/ --weights yolov5s.pt --conf 0.4
-
-Namespace(agnostic_nms=False, augment=False, classes=None, conf_thres=0.4, device='', fourcc='mp4v', half=False, img_size=640, iou_thres=0.5, output='inference/output', save_txt=False, source='./inference/images/', view_img=False, weights='yolov5s.pt')
-Using CUDA device0 _CudaDeviceProperties(name='Tesla P100-PCIE-16GB', total_memory=16280MB)
-
-Downloading https://drive.google.com/uc?export=download&id=1R5T6rIyy3lLwgFXNms8whc-387H0tMQO as yolov5s.pt... Done (2.6s)
-
-image 1/2 inference/images/bus.jpg: 640x512 3 persons, 1 buss, Done. (0.009s)
-image 2/2 inference/images/zidane.jpg: 384x640 2 persons, 2 ties, Done. (0.009s)
-Results saved to /content/yolov5/inference/output
-```
-
-<img src="https://user-images.githubusercontent.com/26833433/83082816-59e54880-a039-11ea-8abe-ab90cc1ec4b0.jpeg" width="500">  
-
-
-## Training
-
-Download [COCO](https://github.com/ultralytics/yolov5/blob/master/data/scripts/get_coco.sh) and run command below. Training times for YOLOv5s/m/l/x are 2/4/6/8 days on a single V100 (multi-GPU times faster). Use the largest `--batch-size` your GPU allows (batch sizes shown for 16 GB devices).
-```bash
-$ python train.py --data coco.yaml --cfg yolov5s.yaml --weights '' --batch-size 64
-                                         yolov5m                                40
-                                         yolov5l                                24
-                                         yolov5x                                16
-```
-<img src="https://user-images.githubusercontent.com/26833433/90222759-949d8800-ddc1-11ea-9fa1-1c97eed2b963.png" width="900">
 
 
 ## Citation
@@ -115,16 +127,22 @@ $ python train.py --data coco.yaml --cfg yolov5s.yaml --weights '' --batch-size 
 [![DOI](https://zenodo.org/badge/264818686.svg)](https://zenodo.org/badge/latestdoi/264818686)
 
 
-## About Us
+#### This is the code for our paper:
+ - [Distance-IoU Loss: Faster and Better Learning for Bounding Box Regression](https://arxiv.org/abs/1911.08287)
+ - [Enhancing Geometric Factors into Model Learning and Inference for Object Detection and Instance Segmentation](http://arxiv.org/abs/2005.03572)
 
-Ultralytics is a U.S.-based particle physics and AI startup with over 6 years of expertise supporting government, academic and business clients. We offer a wide range of vision AI services, spanning from simple expert advice up to delivery of fully customized, end-to-end production solutions, including:
-- **Cloud-based AI** systems operating on **hundreds of HD video streams in realtime.**
-- **Edge AI** integrated into custom iOS and Android apps for realtime **30 FPS video inference.**
-- **Custom data training**, hyperparameter evolution, and model exportation to any destination.
+```
+@Inproceedings{zheng2020distance,
+  author    = {Zhaohui Zheng, Ping Wang, Wei Liu, Jinze Li, Rongguang Ye, Dongwei Ren},
+  title     = {Distance-IoU Loss: Faster and Better Learning for Bounding Box Regression},
+  booktitle = {The AAAI Conference on Artificial Intelligence (AAAI)},
+   year      = {2020},
+}
 
-For business inquiries and professional support requests please visit us at https://www.ultralytics.com. 
-
-
-## Contact
-
-**Issues should be raised directly in the repository.** For business inquiries or professional support requests please visit https://www.ultralytics.com or email Glenn Jocher at glenn.jocher@ultralytics.com. 
+@Article{zheng2020ciou,
+  author= {Zhaohui Zheng, Ping Wang, Dongwei Ren, Wei Liu, Rongguang Ye, Qinghua Hu, Wangmeng Zuo},
+  title={Enhancing Geometric Factors in Model Learning and Inference for Object Detection and Instance Segmentation},
+  journal={arXiv:2005.03572},
+  year={2020}
+}
+```

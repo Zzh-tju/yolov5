@@ -62,8 +62,6 @@ YOLOv5s.pt
 |         Merge + Torchvision NMS        |  off |   -  | 0.65 | 1.3 / 6.7  | 36.9 | 56.2 | 40.2 | 20.9 | 42.1 | 47.4 |
 |          Weighted Cluster-NMS          |  off | 1000 | 0.65 | 1.3 / 6.5  | 36.9 | 56.0 | 40.2 | 20.9 | 42.0 | 47.3 |
 |          Weighted Cluster-NMS          |  off | 1000 | 0.8  | 1.3 / 6.5  | 37.0 | 56.0 | 40.3 | 21.1 | 42.2 | 47.5 |
-|          Weighted Cluster-NMS          |  off | 1000 | 0.8  | 3.2 / 10.2 | 38.1 | 56.1 | 41.9 | 20.9 | 42.7 | 51.8 |
-|          Weighted Cluster-NMS          |  off | 2000 | 0.8  | 3.2 / 14.5 | 38.4 | 56.4 | 41.9 | 21.3 | 43.1 | 52.1 |
 
 YOLOv5m.pt
 
@@ -87,12 +85,12 @@ YOLOv5x.pt `python test.py --weights yolov5s.pt --data coco.yaml --img 832 --aug
 |         Merge + Torchvision NMS        |  on  |   -  | 0.65 | 31.7 / 10.7 | 50.2 | 68.5 | 55.2 | 34.2 | 54.9 | 64.0 |
 |          Weighted Cluster-NMS          |  on  | 1500 | 0.8  | 31.8 / 9.9  | 50.3 | 68.0 | 55.4 | 33.9 | 55.1 | 64.6 |
 
-** AP reports on `coco 2017val`. 
-** `TTA` denotes Test-Time Augmentation.
-** `max-box` denotes maximum number of boxes processed in Batch Mode Cluster-NMS.
-** `weighted threshold` denotes the threshold used in weighted coordinates.
-** time reports model inference / NMS.
-** To avoid randomness, NMS runs three times here. see  [test.py](test.py)
+ - AP reports on `coco 2017val`. 
+ - `TTA` denotes Test-Time Augmentation.
+ - `max-box` denotes maximum number of boxes processed in Batch Mode Cluster-NMS.
+ - `weighted threshold` denotes the threshold used in weighted coordinates.
+ - time reports model inference / NMS.
+ - To avoid randomness, NMS runs three times here. see  [test.py](test.py)
 ```
 # Run NMS
 t = time_synchronized()
@@ -101,6 +99,14 @@ output = non_max_suppression(inf_out, conf_thres=conf_thres, iou_thres=iou_thres
 output = non_max_suppression(inf_out, conf_thres=conf_thres, iou_thres=iou_thres, max_box=max_box, merge=merge)
 t1 += time_synchronized() - t
 ```
+
+## Conclusion
+
+ - Batch mode Weighted Cluster-NMS will have comparible speed with Torchvision merge NMS when batchsize>=16 and without TTA.
+ - When using TTA, the time of torchvision NMS will increase significantly, because the model predicts more boxes. Especially when using multi-scale testing or using more TTA means.
+ - Observed from experience, when turn on TTA, max-box = 1500 will be good. And when turn off TTA, max-box = 1000.
+ 
+ 
 ## Related issues
 
 * [Test-Time Augmentation (TTA)](https://github.com/ultralytics/yolov5/issues/303)

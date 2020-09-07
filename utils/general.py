@@ -706,7 +706,7 @@ def non_max_suppression(prediction, conf_thres=0.1, iou_thres=0.6, max_box=1500,
 
     t = time.time()
     output = [None] * prediction.shape[0]   
-    pred1 = (prediction < -1).float()[:,:max_box,:6]    # pred1.size()=[batch, max_box, max_box] denotes boxes without offset by class
+    pred1 = (prediction < -1).float()[:,:max_box,:6]    # pred1.size()=[batch, max_box, 6] denotes boxes without offset by class
     pred2 = pred1[:,:,:4]+0   # pred2 denotes boxes with offset by class
     batch_size = prediction.shape[0]   
     for xi, x in enumerate(prediction):  # image index, image inference

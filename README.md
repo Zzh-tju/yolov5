@@ -12,9 +12,9 @@
 
 # Batch mode Cluster-NMS
 
-Torchvision NMS has the fastest speed but fails to run in batch mode. And DIoU-NMS cannot be used.
+Torchvision NMS has the fastest speed but fails to run in batch mode.
 
-Cluster-NMS is made for this.
+Batch mode Cluster-NMS is made for this.
 
 ## Pretrained Weights
 
@@ -90,7 +90,7 @@ YOLOv5x.pt `python test.py --weights yolov5s.pt --data coco.yaml --img 832 --aug
  - `max-box` denotes maximum number of boxes processed in Batch Mode Cluster-NMS.
  - `weighted threshold` denotes the threshold used in weighted coordinates.
  - time reports model inference / NMS.
- - To avoid randomness, NMS runs three times here. see  [test.py](test.py)
+ - To avoid randomness, NMS runs three times here. See  [test.py](test.py).
 ```
 # Run NMS
 t = time_synchronized()

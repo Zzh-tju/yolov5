@@ -102,7 +102,7 @@ t1 += time_synchronized() - t
 ## Conclusion
 
  - Batch mode Weighted Cluster-NMS will have comparible speed with Torchvision merge NMS when batchsize>=16 and without TTA.
- - When using TTA, the time of torchvision NMS will increase significantly, because the model predicts more boxes. Especially when using multi-scale testing or more TTA means.
+ - When using TTA, the time of torchvision NMS will increase significantly, because the model predicts much more boxes. Especially when using multi-scale testing or more TTA means.
  - Observed from experience, when using TTA, max-box = 1500 will be good. And when TTA is turned off, max-box = 1000.
  
 ## Related issues

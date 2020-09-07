@@ -16,7 +16,7 @@ Batch mode Cluster-NMS is made for this.
 
 ### Our goal is that when using TTA for getting better performance, NMS no longer becomes a potential time-consuming growth factor.
 
-## Pretrained Weights
+### Some Pretrained Weights
 
 | Model | AP<sup>val</sup> | AP<sup>test</sup> | AP<sub>50</sub> | Speed<sub>GPU</sub> | FPS<sub>GPU</sub> || params | FLOPS |
 |---------- |------ |------ |------ | -------- | ------| ------ |------  |  :------: |
@@ -29,11 +29,7 @@ Batch mode Cluster-NMS is made for this.
 | | | | | | || |
 | [YOLOv3-SPP](https://github.com/ultralytics/yolov5/releases/tag/v3.0) | 45.6     | 45.5     | 65.2     | 4.5ms     | 222     || 63.0M  | 118.0B
 
-** AP<sup>test</sup> denotes COCO [test-dev2017](http://cocodataset.org/#upload) server results, all other AP results in the table denote val2017 accuracy.  
-** All AP numbers are for single-model single-scale without ensemble or test-time augmentation. **Reproduce** by `python test.py --data coco.yaml --img 640 --conf 0.001`  
-** Speed<sub>GPU</sub> measures end-to-end time per image averaged over 5000 COCO val2017 images using a GCP [n1-standard-16](https://cloud.google.com/compute/docs/machine-types#n1_standard_machine_types) instance with one V100 GPU, and includes image preprocessing, PyTorch FP16 image inference at --batch-size 32 --img-size 640, postprocessing and NMS. Average NMS time included in this chart is 1-2ms/img.  **Reproduce** by `python test.py --data coco.yaml --img 640 --conf 0.1`  
-** All checkpoints are trained to 300 epochs with default settings and hyperparameters (no autoaugmentation). 
-** Test Time Augmentation ([TTA](https://github.com/ultralytics/yolov5/issues/303)) runs at 3 image sizes. **Reproduce** by `python test.py --data coco.yaml --img 832 --augment` 
+For more details, please refer to  https://github.com/ultralytics/yolov5.
 
 ## Requirements
 
@@ -41,6 +37,8 @@ Python 3.8 or later with all [requirements.txt](https://github.com/ultralytics/y
 ```bash
 $ pip install -r requirements.txt
 ```
+
+## Evaluation for Batch Mode Weighted Cluster-NMS
 
 #### Hardware
  - 2 RTX 2080 Ti

@@ -16,6 +16,8 @@ Torchvision NMS has the fastest speed but fails to run in batch mode.
 
 Batch mode Cluster-NMS is made for this.
 
+#### Our goal is that when using TTA for getting better performance, NMS no longer becomes a potential time-consuming growth factor.
+
 ## Pretrained Weights
 
 | Model | AP<sup>val</sup> | AP<sup>test</sup> | AP<sub>50</sub> | Speed<sub>GPU</sub> | FPS<sub>GPU</sub> || params | FLOPS |
@@ -103,9 +105,8 @@ t1 += time_synchronized() - t
 ## Conclusion
 
  - Batch mode Weighted Cluster-NMS will have comparible speed with Torchvision merge NMS when batchsize>=16 and without TTA.
- - When using TTA, the time of torchvision NMS will increase significantly, because the model predicts more boxes. Especially when using multi-scale testing or using more TTA means.
+ - When using TTA, the time of torchvision NMS will increase significantly, because the model predicts more boxes. Especially when using multi-scale testing or more TTA means.
  - Observed from experience, when turn on TTA, max-box = 1500 will be good. And when turn off TTA, max-box = 1000.
- 
  
 ## Related issues
 

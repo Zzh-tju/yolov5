@@ -21,6 +21,7 @@ from utils.torch_utils import select_device, time_synchronized
 def test(data,
          weights=None,
          batch_size=16,
+         max_box=1500,
          imgsz=640,
          conf_thres=0.001,
          iou_thres=0.6,  # for NMS
@@ -110,7 +111,9 @@ def test(data,
 
             # Run NMS
             t = time_synchronized()
-            output = non_max_suppression(inf_out, conf_thres=conf_thres, iou_thres=iou_thres, merge=merge)
+            output = non_max_suppression(inf_out, conf_thres=conf_thres, iou_thres=iou_thres, max_box=max_box, merge=merge)
+            output = non_max_suppression(inf_out, conf_thres=conf_thres, iou_thres=iou_thres, max_box=max_box, merge=merge)
+            output = non_max_suppression(inf_out, conf_thres=conf_thres, iou_thres=iou_thres, max_box=max_box, merge=merge)
             t1 += time_synchronized() - t
 
         # Statistics per image
@@ -253,6 +256,7 @@ if __name__ == '__main__':
     parser.add_argument('--weights', nargs='+', type=str, default='yolov5s.pt', help='model.pt path(s)')
     parser.add_argument('--data', type=str, default='data/coco128.yaml', help='*.data path')
     parser.add_argument('--batch-size', type=int, default=32, help='size of each image batch')
+    parser.add_argument('--max-box', type=int, default=1500, help='max number of boxes for cluster_nms')
     parser.add_argument('--img-size', type=int, default=640, help='inference size (pixels)')
     parser.add_argument('--conf-thres', type=float, default=0.001, help='object confidence threshold')
     parser.add_argument('--iou-thres', type=float, default=0.65, help='IOU threshold for NMS')
@@ -273,6 +277,7 @@ if __name__ == '__main__':
         test(opt.data,
              opt.weights,
              opt.batch_size,
+             opt.max_box,
              opt.img_size,
              opt.conf_thres,
              opt.iou_thres,

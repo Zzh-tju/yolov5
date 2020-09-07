@@ -83,6 +83,7 @@ YOLOv5x.pt `python test.py --weights yolov5s.pt --data coco.yaml --img 832 --aug
 |         Merge + Torchvision NMS        |  on  |   -  | 0.65 | 31.7 / 10.7 | 50.2 | 68.5 | 55.2 | 34.2 | 54.9 | 64.0 |
 |          Weighted Cluster-NMS          |  on  | 1500 | 0.8  | 31.8 / 9.9  | 50.3 | 68.0 | 55.4 | 33.9 | 55.1 | 64.6 |
 
+#### Details: 
  - AP reports on `coco 2017val`. 
  - `TTA` denotes Test-Time Augmentation.
  - `max-box` denotes maximum number of boxes processed in Batch Mode Cluster-NMS.
